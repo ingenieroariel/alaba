@@ -1,77 +1,66 @@
-# Just one song in a song.txt file, one line per paragraph (screen),
-#  when you run "perform.py song.txt" it goes full screen and starts showing the
-# first paragraph it then allows you to go forward or backward (in a loop)
-# until you press Esc to leave the program.
-
+#!/usr/bin/env python
 import sys
 import os
-from Tkinter import *           # TK is python's default GUI module
+from Tkinter import *
 
 
-#TODO make a more memory-efficient way to read the file.
-# maybe with a first pass to store the locations of each new line into a array
-# probably this isn't worth unless the file is larger than 1MB ( ? research on it ) 
+def play(song_name):
+    """
+    Paragraphs are separated by a blank line
+    This function takes a path to file in the following format:
+    Two line breaks 
+    """
+    song_file = open(song_name, "r")
+    # We assume the file is small enough that loading it fully into
+    # the RAM is not an issue. TODO: Revisit in the future to avoid
+    # having it blow up if the file is too big.
+    lines = song_file.readlines()
+    song_file.close()
 
-try:
-        if os.path.isfile(sys.argv[1]) :
-                pfile = open( sys.argv[1], "r") 
-                lines = pfile.readlines()                
-                pfile.close()                
-        else:
-                print "The file %s doesn't exist." % sys.argv[1]
-                sys.exit()          
+    nlines = len(lines)
+    global i
+    i = 0
 
-except IndexError:
-        print "Usage : performer.py <lyrics.txt>"
-        sys.exit()
+    # creates a "root window" and name it.
+    root = Tk()
+    root.title("Performer")
 
-except IOError:
-        print "Can't open file %s" % sys.argv[1]
-        sys.exit()
+    # getting screen dimentions
+    w, h = root.winfo_screenwidth(), root.winfo_screenheight()
+    # configuring the screen size
+    root.geometry("%dx%d+0+0" % (w, h))
+    # Setup sensible defaults for the text
+    text = Text(root, state=DISABLED)       
+    text.config(background = "#%02x%02x%02x" % (0, 0, 0) )
+    text.config(foreground = "#%02x%02x%02x" % (255, 255, 255) )
+    text.config(font = "Sans %d" % (h * 0.037))
+    text.config(wrap = WORD)
 
+    # TODO make a canvas_text widget, looks like it is need fori
+    # centering the text this one SHOULD have worked according 
+    # to the TCL spec ... maybe I found a bug ? 
+    # http://www.tcl.tk/man/tcl8.5/TkCmd/text.htm#M50
+    #text.config(justify = CENTER)
 
-nlines = len(lines)
-i = 0
-
-
-
-root = Tk()                     # creates a "root window" and name it.
-root.title("Performer")
-
-
-
-w, h = root.winfo_screenwidth(), root.winfo_screenheight()      # getting screen dimentions
-root.geometry("%dx%d+0+0" % (w, h))                             # configuring the screen size
-
-text = Text(root, state=DISABLED)       
-text.config(background = "#%02x%02x%02x" % (0, 0, 0) )
-text.config(foreground = "#%02x%02x%02x" % (255, 255, 255) )
-text.config(font = "Sans %d" % (h * 0.037))
-text.config(wrap = WORD)
-
-#TODO make a canvas_text widget, looks like it is need for centering the text
-# this one SHOULD have worked according to the TCL spec ... maybe I found a bug ? http://www.tcl.tk/man/tcl8.5/TkCmd/text.htm#M50
-#text.config(justify = CENTER)
-
-text.pack(fill=BOTH, expand=1)          # sends the widget to the window, expanding its size to the max
+    # sends the widget to the window, expanding its size to the max
+    text.pack(fill=BOTH, expand=1)          
 
 
-#TODO find out how to put the text on the middle of the screen
-# already tried, can't find this one, need external help
+    #TODO find out how to put the text on the middle of the screen
+    # already tried, can't find this one, need external help
 
-# no-go, the text widget doesn't work when I do this
-#text.place(anchor=CENTER)
+    # no-go, the text widget doesn't work when I do this
+    #text.place(anchor=CENTER)
 
-# I get WEIRD resuts :/
-#text.grid(row=0)
-#e1 = Entry(root)
-#e1.grid(row=0, column=0)
+    # I get WEIRD resuts :/
+    #text.grid(row=0)
+    #e1 = Entry(root)
+    #e1.grid(row=0, column=0)
 
-
-
-
-
-def WritePrevious(event):               #  writes previous paragraph on the screen
+    def write_previous(event):
+        """
+        writes previous paragraph on the screen
+        """
         global i
         i -= 1
         if i < 0:
@@ -82,7 +71,10 @@ def WritePrevious(event):               #  writes previous paragraph on the scre
         text.config(state=DISABLED)        
 
 
-def WriteNext(event):                   # writes the next paragraph on the screen
+    def write_next(event):
+        """
+        writes the next paragraph on the screen
+        """
         global i
         text.config(state=NORMAL)       
         text.delete(1.0, END)
@@ -90,25 +82,48 @@ def WriteNext(event):                   # writes the next paragraph on the scree
         text.insert(END, lines[i])
         text.config(state=DISABLED)        
         
-def EscPressed(event):                  # quits the mainloop() 
+    def esc_pressed(event):
+        """
+        quits the mainloop()
+        """
         root.quit()
 
+    # Bind the key handlers to the application
+    root.bind("<Escape>", esc_pressed )
+    root.bind("q", esc_pressed )
+    root.bind("<Left>", write_previous)
+    root.bind("<Down>", write_previous)
+    root.bind("<Right>", write_next)
+    root.bind("<Up>", write_next)
 
-root.bind("<Escape>", EscPressed )
-root.bind("q", EscPressed )
-root.bind("<Left>", WritePrevious)
-root.bind("<Down>", WritePrevious)
-root.bind("<Right>", WriteNext)
-root.bind("<Up>", WriteNext)
 
 
+    #TODO remove the top/botton and everything else from the screen
+    # search why this isn't woking, maybe I have to tkraise() it somehow
+    # ignoring system bars
+    #root.overrideredirect(1) 
+    root.focus_set() 
 
-#TODO remove the top/botton and everything else from the screen
-# search why this isn't woking, maybe I have to tkraise() it somehow
-#root.overrideredirect(1)                                        # ignoring system bars
-root.focus_set() 
-#start reading the first line
-WriteNext(0);
+    #start reading the first line
+    write_next(0)
 
-root.mainloop()                                                 # processes events to the window, letting user interact with it
+    # processes events to the window, letting user interact with it
+    root.mainloop()        
 
+if __name__ == "__main__":
+    # This library is being run as a script, look
+    # for the song's path in the argument
+    try:
+        if not os.path.isfile(sys.argv[1]):
+           print "The file %s doesn't exist." % sys.argv[1]
+           sys.exit()          
+        song_name = sys.argv[1]
+        play(sys.argv[1])
+
+    except IndexError:
+        print "Usage : performer.py <lyrics.txt>"
+        sys.exit()
+
+    except IOError:
+        print "Can't open file %s" % sys.argv[1]
+        sys.exit()
