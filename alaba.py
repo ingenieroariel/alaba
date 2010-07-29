@@ -121,7 +121,7 @@ if __name__ == "__main__":
         play(sys.argv[1])
 
     except IndexError:
-        print "Usage : performer.py <lyrics.txt>"
+        print "Usage : %s <lyrics.txt>" % sys.argv[0]
         sys.exit()
 
     except IOError:
