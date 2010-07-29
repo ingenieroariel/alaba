@@ -1,17 +1,6 @@
 Torre fuerte
 
 
-//Torre fuerte es el nombre del SeÒor//
+//Torre fuerte es el nombre del Se√±or//
 
-//A …l correr· el justo,y levantado ser·//.
-
-
-
-
-
-
-CCLI Song No. 
-©
-
-DUMMY LINE
-CCLI License No. 123456
+//A √âl correr√° el justo,y levantado ser√°//.
