@@ -1,4 +1,4 @@
 Usage
 =====
 
-python performer.py the_song.txt
+./alabe.py the_song.txt
